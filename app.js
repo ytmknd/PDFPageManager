@@ -1,9 +1,31 @@
+// ブラウザの言語を取得
+const userLang = (navigator.language || navigator.userLanguage).startsWith('ja') ? 'ja' : 'en';
+
+// 言語リソース辞書
+const t = {
+    title: userLang === 'ja' ? "PDFページマネージャー" : "PDF Page Manager",
+    exportBtn: userLang === 'ja' ? "PDFとして保存" : "Save as PDF",
+    dropzoneText: userLang === 'ja' ? "ここにPDFファイルをドラッグ＆ドロップして追加" : "Drag and drop PDF files here to add",
+    processing: userLang === 'ja' ? "処理中..." : "Processing...",
+    notPdfError: (name) => userLang === 'ja' ? `${name} はPDFファイルではありません。` : `${name} is not a PDF file.`,
+    loadError: (name) => userLang === 'ja' ? `${name} の読み込みに失敗しました。` : `Failed to load ${name}.`,
+    deleteBtn: userLang === 'ja' ? "削除" : "Delete",
+    saveError: userLang === 'ja' ? "PDFの保存に失敗しました。" : "Failed to save PDF."
+};
+
 // アプリケーションの状態を保持する配列
 let allPages = [];
 // 一意のIDを生成するためのカウンター
 let pageCounter = 0;
 
 document.addEventListener('DOMContentLoaded', () => {
+    // UIのテキストを初期化
+    document.title = t.title;
+    document.getElementById('appTitle').textContent = t.title;
+    document.getElementById('exportBtn').textContent = t.exportBtn;
+    document.getElementById('dropzoneText').textContent = t.dropzoneText;
+    document.getElementById('loadingText').textContent = t.processing;
+
     const dropzone = document.getElementById('dropzone');
     const fileInput = document.getElementById('fileInput');
     const pagesContainer = document.getElementById('pagesContainer');
@@ -56,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
             if (file.type !== 'application/pdf') {
-                alert(`${file.name} is not a PDF file.`);
+                alert(t.notPdfError(file.name));
                 continue;
             }
 
@@ -65,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await processPDF(arrayBuffer, file.name);
             } catch (error) {
                 console.error('Error loading PDF:', error);
-                alert(`Failed to load ${file.name}.`);
+                alert(t.loadError(file.name));
             }
         }
         
@@ -137,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <img src="${previewUrl}" class="page-preview" alt="Page preview">
             <div class="page-controls">
                 <span class="page-number">${pageInfo.sourceFile} (p.${pageInfo.sourcePageNum})</span>
-                <button class="btn-delete" onclick="deletePage('${pageInfo.id}')">Delete</button>
+                <button class="btn-delete" onclick="deletePage('${pageInfo.id}')">${t.deleteBtn}</button>
             </div>
         `;
 
@@ -186,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
         } catch (error) {
             console.error('Error exporting PDF:', error);
-            alert('Failed to save PDF.');
+            alert(t.saveError);
         } finally {
             hideLoading();
         }

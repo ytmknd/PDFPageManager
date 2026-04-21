@@ -19,13 +19,13 @@
 <body>
     <div class="container">
         <header>
-            <h1>PDF Page Manager</h1>
+            <h1 id="appTitle">PDF Page Manager</h1>
             <button id="exportBtn" class="btn btn-primary" disabled>Save as PDF</button>
         </header>
         
         <main>
             <div id="dropzone" class="dropzone">
-                <p>Drag and drop PDF files here to add</p>
+                <p id="dropzoneText">Drag and drop PDF files here to add</p>
                 <input type="file" id="fileInput" accept="application/pdf" style="display: none;">
             </div>
 
@@ -38,7 +38,7 @@
     <!-- Loading overlay -->
     <div id="loading" class="loading-overlay hidden">
         <div class="spinner"></div>
-        <p>Processing...</p>
+        <p id="loadingText">Processing...</p>
     </div>
 
     <script src="app.js"></script>
