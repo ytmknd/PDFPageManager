@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <img src="${previewUrl}" class="page-preview" alt="Page preview">
             <div class="page-controls">
                 <span class="page-number">${pageInfo.sourceFile} (p.${pageInfo.sourcePageNum})</span>
-                <button class="btn-delete" onclick="deletePage('${pageInfo.id}')">${t.deleteBtn}</button>
+                <button class="btn-delete">${t.deleteBtn}</button>
             </div>
         `;
 
