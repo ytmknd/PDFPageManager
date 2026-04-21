@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
             if (file.type !== 'application/pdf') {
-                alert(`${file.name} はPDFファイルではありません。`);
+                alert(`${file.name} is not a PDF file.`);
                 continue;
             }
 
@@ -64,8 +64,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const arrayBuffer = await file.arrayBuffer();
                 await processPDF(arrayBuffer, file.name);
             } catch (error) {
-                console.error('PDFの読み込みエラー:', error);
-                alert(`${file.name} の読み込みに失敗しました。`);
+                console.error('Error loading PDF:', error);
+                alert(`Failed to load ${file.name}.`);
             }
         }
         
@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <img src="${previewUrl}" class="page-preview" alt="Page preview">
             <div class="page-controls">
                 <span class="page-number">${pageInfo.sourceFile} (p.${pageInfo.sourcePageNum})</span>
-                <button class="btn-delete" onclick="deletePage('${pageInfo.id}')">削除</button>
+                <button class="btn-delete" onclick="deletePage('${pageInfo.id}')">Delete</button>
             </div>
         `;
 
@@ -185,8 +185,8 @@ document.addEventListener('DOMContentLoaded', () => {
             URL.revokeObjectURL(url);
             
         } catch (error) {
-            console.error('PDFのエクスポートエラー:', error);
-            alert('PDFの保存に失敗しました。');
+            console.error('Error exporting PDF:', error);
+            alert('Failed to save PDF.');
         } finally {
             hideLoading();
         }

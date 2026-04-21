@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,26 +19,26 @@
 <body>
     <div class="container">
         <header>
-            <h1>PDFページマネージャー</h1>
-            <button id="exportBtn" class="btn btn-primary" disabled>PDFとして保存</button>
+            <h1>PDF Page Manager</h1>
+            <button id="exportBtn" class="btn btn-primary" disabled>Save as PDF</button>
         </header>
         
         <main>
             <div id="dropzone" class="dropzone">
-                <p>ここにPDFファイルをドラッグ＆ドロップして追加</p>
+                <p>Drag and drop PDF files here to add</p>
                 <input type="file" id="fileInput" accept="application/pdf" style="display: none;">
             </div>
 
             <div id="pagesContainer" class="pages-grid">
-                <!-- ページごとのプレビューがここに追加されます -->
+                <!-- Page previews will be added here -->
             </div>
         </main>
     </div>
 
-    <!-- 処理中のオーバーレイ -->
+    <!-- Loading overlay -->
     <div id="loading" class="loading-overlay hidden">
         <div class="spinner"></div>
-        <p>処理中...</p>
+        <p>Processing...</p>
     </div>
 
     <script src="app.js"></script>
