@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Page Manager</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- pdf-lib for PDF manipulation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <!-- pdf.js for rendering previews -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script>
+        // Set worker URL for pdf.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    </script>
+    <!-- SortableJS for drag-and-drop reordering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PDFページマネージャー</h1>
+            <button id="exportBtn" class="btn btn-primary" disabled>PDFとして保存</button>
+        </header>
+        
+        <main>
+            <div id="dropzone" class="dropzone">
+                <p>ここにPDFファイルをドラッグ＆ドロップして追加</p>
+                <input type="file" id="fileInput" accept="application/pdf" style="display: none;">
+            </div>
+
+            <div id="pagesContainer" class="pages-grid">
+                <!-- ページごとのプレビューがここに追加されます -->
+            </div>
+        </main>
+    </div>
+
+    <!-- 処理中のオーバーレイ -->
+    <div id="loading" class="loading-overlay hidden">
+        <div class="spinner"></div>
+        <p>処理中...</p>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
