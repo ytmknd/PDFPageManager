@@ -1,7 +1,7 @@
-// ブラウザの言語を取得
+// Get browser language
 const userLang = (navigator.language || navigator.userLanguage).startsWith('ja') ? 'ja' : 'en';
 
-// 言語リソース辞書
+// Language resource dictionary
 const t = {
     title: userLang === 'ja' ? "PDFページマネージャー" : "PDF Page Manager",
     exportBtn: userLang === 'ja' ? "PDFとして保存" : "Save as PDF",
@@ -13,13 +13,13 @@ const t = {
     saveError: userLang === 'ja' ? "PDFの保存に失敗しました。" : "Failed to save PDF."
 };
 
-// アプリケーションの状態を保持する配列
+// Array to hold application state
 let allPages = [];
-// 一意のIDを生成するためのカウンター
+// Counter for generating unique IDs
 let pageCounter = 0;
 
 document.addEventListener('DOMContentLoaded', () => {
-    // UIのテキストを初期化
+    // Initialize UI text
     document.title = t.title;
     document.getElementById('appTitle').textContent = t.title;
     document.getElementById('exportBtn').textContent = t.exportBtn;
@@ -32,17 +32,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const exportBtn = document.getElementById('exportBtn');
     const loadingOverlay = document.getElementById('loading');
 
-    // SortableJSの初期化（ドラッグ＆ドロップでの並び替え用）
+    // Initialize SortableJS (for drag & drop reordering)
     new Sortable(pagesContainer, {
         animation: 150,
         ghostClass: 'sortable-ghost',
         onEnd: updateExportButtonState
     });
 
-    // ドロップゾーンのクリックでファイル選択ダイアログを開く
+    // Open file selection dialog on dropzone click
     dropzone.addEventListener('click', () => fileInput.click());
 
-    // ドラッグ＆ドロップのイベント処理
+    // Drag & drop event handling
     dropzone.addEventListener('dragover', (e) => {
         e.preventDefault();
         dropzone.classList.add('dragover');
@@ -60,18 +60,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // ファイル選択のイベント処理
+    // File selection event handling
     fileInput.addEventListener('change', (e) => {
         if (e.target.files.length > 0) {
             handleFiles(e.target.files);
         }
-        fileInput.value = ''; // 同じファイルを再度選択できるようにクリア
+        fileInput.value = ''; // Clear so the same file can be selected again
     });
 
-    // エクスポートボタンの処理
+    // Export button processing
     exportBtn.addEventListener('click', exportPDF);
 
-    // ファイルを処理する関数
+    // Function to process files
     async function handleFiles(files) {
         showLoading();
         
@@ -95,22 +95,22 @@ document.addEventListener('DOMContentLoaded', () => {
         hideLoading();
     }
 
-    // PDFをページ単位に分割して表示する関数
+    // Function to split and display PDF by page
     async function processPDF(arrayBuffer, fileName) {
-        // PDF.jsでプレビュー画像を生成し、pdf-libでPDF構造をパースする
+        // Generate preview image with PDF.js and parse PDF structure with pdf-lib
         const uint8Array = new Uint8Array(arrayBuffer);
         
-        // 1. pdf-libでPDFをロード（後で結合・抽出するため）
+        // 1. Load PDF with pdf-lib (for later extraction/merging)
         const pdfDoc = await PDFLib.PDFDocument.load(uint8Array);
         const pageCount = pdfDoc.getPageCount();
 
-        // 2. pdf.jsでパース（プレビュー用）
+        // 2. Parse with pdf.js (for preview)
         const pdfJsDoc = await pdfjsLib.getDocument({ data: uint8Array }).promise;
 
         for (let pageNum = 1; pageNum <= pageCount; pageNum++) {
             const id = `page-${Date.now()}-${pageCounter++}`;
             
-            // 該当ページをコピーしておく (1-based from PDFLib)
+            // Copy the corresponding page (1-based from PDFLib)
             const copiedPages = await PDFLib.PDFDocument.create().then(async doc => {
                 const [copiedPage] = await doc.copyPages(pdfDoc, [pageNum - 1]);
                 doc.addPage(copiedPage);
@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return await PDFLib.PDFDocument.load(bytes);
             });
 
-            // プレビュー用の画像(DataURL)を生成
+            // Generate preview image (DataURL)
             const pageData = await pdfJsDoc.getPage(pageNum);
             const scale = 1.0; 
             const viewport = pageData.getViewport({ scale: scale });
@@ -135,21 +135,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const previewUrl = canvas.toDataURL('image/jpeg');
 
-            // ページ情報の保存
+            // Save page information
             const pageInfo = {
                 id: id,
-                pdfBytes: await copiedPages.save(), // そのページ単体のPDFデータ
+                pdfBytes: await copiedPages.save(), // PDF data for single page
                 sourceFile: fileName,
                 sourcePageNum: pageNum
             };
             allPages.push(pageInfo);
 
-            // UI要素の作成
+            // Create UI elements
             createPageCard(pageInfo, previewUrl);
         }
     }
 
-    // プレビューカードをDOMに追加する関数
+    // Function to add preview card to DOM
     function createPageCard(pageInfo, previewUrl) {
         const div = document.createElement('div');
         div.className = 'page-card';
@@ -165,21 +165,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         pagesContainer.appendChild(div);
         
-        // 削除ボタンのイベントリスナー
+        // Delete button event listener
         div.querySelector('.btn-delete').addEventListener('click', () => {
             pagesContainer.removeChild(div);
-            // allPages配下からは消さなくてもDOMがないのでExport時に無視できる
+            // No need to remove from allPages, ignored during export if not in DOM
             updateExportButtonState();
         });
     }
 
-    // PDFエクスポート処理
+    // PDF export processing
     async function exportPDF() {
         showLoading();
         try {
             const combinedPdf = await PDFLib.PDFDocument.create();
             
-            // 現在のDOMの順序を取得（SortableJSで変更されている可能性があるため）
+            // Get current DOM order (as it might have been changed by SortableJS)
             const cards = pagesContainer.querySelectorAll('.page-card');
             
             for (const card of cards) {
@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const blob = new Blob([pdfBytes], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
             
-            // ダウンロードリンクを生成してクリック
+            // Create and click download link
             const a = document.createElement('a');
             a.href = url;
             a.download = `combined_document_${new Date().getTime()}.pdf`;
@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ボタンの有効/無効を切り替える
+    // Toggle button enable/disable state
     function updateExportButtonState() {
         if (pagesContainer.children.length > 0) {
             exportBtn.removeAttribute('disabled');
