@@ -9,8 +9,10 @@ A simple, web-based application for managing PDF pages directly in your browser.
 
 ## Getting Started
 
-To use the PDF Page Manager, you don't need any complex setup or server. 
+You can use the PDF Page Manager directly from GitHub Pages:
+[https://ytmknd.github.io/PDFPageManager/](https://ytmknd.github.io/PDFPageManager/)
 
+Alternatively, to run it locally:
 1. Clone or download this repository to your local machine.
 2. Open the `index.html` file in any modern web browser.
 
