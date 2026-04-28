@@ -10,6 +10,7 @@ const t = {
     notPdfError: (name) => userLang === 'ja' ? `${name} はPDFファイルではありません。` : `${name} is not a PDF file.`,
     loadError: (name) => userLang === 'ja' ? `${name} の読み込みに失敗しました。` : `Failed to load ${name}.`,
     deleteBtn: userLang === 'ja' ? "削除" : "Delete",
+    rotateBtn: userLang === 'ja' ? "右回転" : "Rotate Right",
     saveError: userLang === 'ja' ? "PDFの保存に失敗しました。" : "Failed to save PDF."
 };
 
@@ -140,7 +141,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 id: id,
                 pdfBytes: await copiedPages.save(), // PDF data for single page
                 sourceFile: fileName,
-                sourcePageNum: pageNum
+                sourcePageNum: pageNum,
+                rotation: 0
             };
             allPages.push(pageInfo);
 
@@ -159,7 +161,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <img src="${previewUrl}" class="page-preview" alt="Page preview">
             <div class="page-controls">
                 <span class="page-number">${pageInfo.sourceFile} (p.${pageInfo.sourcePageNum})</span>
-                <button class="btn-delete">${t.deleteBtn}</button>
+                <div class="control-buttons">
+                    <button class="btn-delete">${t.deleteBtn}</button>
+                    <button class="btn-rotate" title="${t.rotateBtn}" aria-label="${t.rotateBtn}">↻</button>
+                </div>
             </div>
         `;
 
@@ -170,6 +175,13 @@ document.addEventListener('DOMContentLoaded', () => {
             pagesContainer.removeChild(div);
             // No need to remove from allPages, ignored during export if not in DOM
             updateExportButtonState();
+        });
+
+        // Rotate-right button event listener
+        div.querySelector('.btn-rotate').addEventListener('click', () => {
+            pageInfo.rotation = (pageInfo.rotation + 90) % 360;
+            const preview = div.querySelector('.page-preview');
+            preview.style.transform = `rotate(${pageInfo.rotation}deg)`;
         });
     }
 
@@ -189,6 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (pageInfo) {
                     const tempPdf = await PDFLib.PDFDocument.load(pageInfo.pdfBytes);
                     const [copiedPage] = await combinedPdf.copyPages(tempPdf, [0]);
+                    copiedPage.setRotation(PDFLib.degrees(pageInfo.rotation || 0));
                     combinedPdf.addPage(copiedPage);
                 }
             }
