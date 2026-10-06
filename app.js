@@ -11,6 +11,7 @@ const t = {
     loadError: (name) => userLang === 'ja' ? `${name} の読み込みに失敗しました。` : `Failed to load ${name}.`,
     deleteBtn: userLang === 'ja' ? "削除" : "Delete",
     rotateBtn: userLang === 'ja' ? "右回転" : "Rotate Right",
+    closeBtn: userLang === 'ja' ? "閉じる" : "Close",
     saveError: userLang === 'ja' ? "PDFの保存に失敗しました。" : "Failed to save PDF."
 };
 
@@ -32,12 +33,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const pagesContainer = document.getElementById('pagesContainer');
     const exportBtn = document.getElementById('exportBtn');
     const loadingOverlay = document.getElementById('loading');
+    const zoomModal = document.getElementById('zoomModal');
+    const zoomCanvas = document.getElementById('zoomCanvas');
+    const zoomCloseBtn = document.getElementById('zoomCloseBtn');
+    zoomCloseBtn.setAttribute('aria-label', t.closeBtn);
+    zoomCloseBtn.title = t.closeBtn;
+
+    // Set while a card is being dragged so the trailing click doesn't open the zoom view
+    let isDragging = false;
 
     // Initialize SortableJS (for drag & drop reordering)
     new Sortable(pagesContainer, {
         animation: 150,
         ghostClass: 'sortable-ghost',
-        onEnd: updateExportButtonState
+        onStart: () => { isDragging = true; },
+        onEnd: () => {
+            updateExportButtonState();
+            // Reset after the click event that follows the drop has fired
+            setTimeout(() => { isDragging = false; }, 0);
+        }
+    });
+
+    // Close zoom modal on background click, close button, or Escape key
+    zoomModal.addEventListener('click', (e) => {
+        if (e.target !== zoomCanvas) closeZoom();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !zoomModal.classList.contains('hidden')) closeZoom();
     });
 
     // Open file selection dialog on dropzone click
@@ -183,6 +205,52 @@ document.addEventListener('DOMContentLoaded', () => {
             const preview = div.querySelector('.page-preview');
             preview.style.transform = `rotate(${pageInfo.rotation}deg)`;
         });
+
+        // Click on the card (outside the buttons) to show an enlarged view
+        div.addEventListener('click', (e) => {
+            if (isDragging || e.target.closest('button')) return;
+            openZoom(pageInfo);
+        });
+    }
+
+    // Render the page at high resolution and show it in the center of the screen
+    async function openZoom(pageInfo) {
+        showLoading();
+        try {
+            // Pass a copy because pdf.js transfers (detaches) the buffer to its worker
+            const pdfJsDoc = await pdfjsLib.getDocument({ data: pageInfo.pdfBytes.slice() }).promise;
+            const page = await pdfJsDoc.getPage(1);
+            const rotation = (page.rotate + (pageInfo.rotation || 0)) % 360;
+
+            // Fit within 90% of the window, rendered at device pixel ratio for sharpness
+            const baseViewport = page.getViewport({ scale: 1.0, rotation });
+            const maxWidth = window.innerWidth * 0.9;
+            const maxHeight = window.innerHeight * 0.9;
+            const fitScale = Math.min(maxWidth / baseViewport.width, maxHeight / baseViewport.height);
+            const dpr = window.devicePixelRatio || 1;
+            const viewport = page.getViewport({ scale: fitScale * dpr, rotation });
+
+            zoomCanvas.width = viewport.width;
+            zoomCanvas.height = viewport.height;
+            zoomCanvas.style.width = `${viewport.width / dpr}px`;
+            zoomCanvas.style.height = `${viewport.height / dpr}px`;
+
+            await page.render({
+                canvasContext: zoomCanvas.getContext('2d'),
+                viewport: viewport
+            }).promise;
+            pdfJsDoc.destroy();
+
+            zoomModal.classList.remove('hidden');
+        } catch (error) {
+            console.error('Error rendering zoom view:', error);
+        } finally {
+            hideLoading();
+        }
+    }
+
+    function closeZoom() {
+        zoomModal.classList.add('hidden');
     }
 
     // PDF export processing
